@@ -1,0 +1,442 @@
+//Group Project 3: Forks and Threads
+//Part Three
+//CSE 3243 Operating Systems Summer 2015
+//Authors: Jeswin Abraham, Danielle Martin, Hyun Oh, Michael Vanderbilt
+//June 17, 2015
+
+
+#include <cstdlib>
+#include <pthread.h>
+#include <stdio.h>
+#include <fstream>
+#include <iostream>
+#include <string>
+
+
+using namespace std;
+
+//methods
+void* bubbleSort(void* threadid);
+void bubbleSort(int myArray[], int size);
+void* insertionSort(void *threadid);
+void insertionSort(int myArray[], int size);
+void mergeArray(int array1[], int array2[], int finalArray[], int size);
+void mergeNumbers(int myArray[], int newArray[], int minCount, int maxCount, int midCount);
+void* mergeSort(void *threadid);
+void mergeSort(int myArray[], int newArray[], int minCount, int maxCount);
+void openFile();
+void quickSort(int input[], int lowIndex, int highIndex);
+int quickSortPartition(int array1[], int lowIndex, int highIndex);
+void* quickSort(void* threadid);
+void* selectionSort(void *threadid);
+void* shellSort(void *threadid);
+void shellSort(int myArray[], int size);
+void selectionSort(int array2[], int size);
+void trial1();
+void trial2();
+void writeTrial1(int finalArray1[]);
+void writeTrial2(int finalArray2[]);
+
+//variables
+int array1[500000];
+int array2[500000];
+int array3[250000];
+int array4[250000];
+int array5[250000];
+int array6[250000];
+int newArray[250000];
+int tempArray1[500000];
+int tempArray2[500000];
+int finalArray1[1000000];
+int finalArray2[1000000];
+
+
+
+int main(int argc, char *argv[]) {
+    
+    openFile();
+    trial1();
+    trial2();
+    return 0;
+}
+
+
+void trial1(){
+    //contains 2 threads to sort an array using 2 different sorts
+    int t1, t2, i;
+    void *status;
+    pthread_t thread1, thread2;
+    t1 = pthread_create(&thread1, NULL, quickSort, (void *)i);
+    t2 = pthread_create(&thread2, NULL, selectionSort, (void *)i);
+    pthread_join(thread1, &status);
+    pthread_join(thread2, &status);
+    
+    mergeArray(array1, array2, finalArray1, 500000);
+    writeTrial1(finalArray1);
+    
+}
+
+void trial2(){
+    // contains 4 threads to sort an array using 4 different sorts
+    int i, t1, t2, t3, t4;
+    void *status;
+    pthread_t thread1, thread2, thread3, thread4;
+    t1 = pthread_create(&thread1, NULL, mergeSort, (void *)i);
+    t2 = pthread_create(&thread2, NULL, insertionSort, (void *)i);
+    t3 = pthread_create(&thread3, NULL, bubbleSort, (void *)i);
+    t4 = pthread_create(&thread4, NULL, shellSort, (void *)i);
+    pthread_join(thread1, &status);
+    pthread_join(thread2, &status);
+    pthread_join(thread3, &status);
+    pthread_join(thread4, &status);
+    
+    mergeArray(array3, array6, tempArray1, 250000);
+    mergeArray(array4, array5, tempArray2, 250000);
+    mergeArray(tempArray1, tempArray2, finalArray2, 500000);
+    
+    writeTrial2(finalArray2);
+    
+}
+
+void openFile(){
+    
+    ifstream myFile;
+    myFile.open("numbers.txt");
+    if(myFile.is_open())
+    {
+        string character;
+        int temp;
+        cout << "file has opened" << endl;
+        for(int i = 0; i < 1000000; i++)
+        {
+            
+            getline(myFile, character);
+            temp = atoi(character.c_str());
+            
+            //create 6 arrays
+            if(i < 500000)
+                array1[i] = temp;
+            if( i < 250000)
+                array3[i] = temp;
+            if(i >= 250000 && i < 500000)
+                array4[i-250000] = temp;
+            if(i >= 500000 && i< 750000)
+                array5[i -500000] =temp;
+            if(i >= 750000 && i < 1000000)
+                array6[i-750000] = temp;
+            if(i >= 500000)
+                array2[i-500000] = temp;
+        }
+        else
+        {
+            cout << "Error opening file" << endl;
+        }
+        
+        cout << "file is about to close";
+        myFile.close();
+    }
+}
+
+//merge two pre-sorted arrays
+void mergeArray(int array1[], int array2[], int finalArray2[], int arraySize)
+{
+    int index1 = 0;
+    int index2 = 0;
+    int indexF= 0;
+    
+    
+    //both arrays are NOT empty
+    while((index1 < arraySize) && (index2 < arraySize))
+    {
+        
+        if(array1[index1] < array2[index2])             //array1 value smaller
+        {
+            finalArray2[indexF] = array1[index1];
+            index1++;
+            indexF++;
+        }
+        else                                            //array2 value smaller
+        {
+            finalArray2[indexF] = array2[index2];
+            index2++;
+            indexF++;
+        }
+    }
+    
+    //one array is empty and one array is NOT empty
+    //move remaining data to end of finalArray2
+    while(index1 < arraySize)
+    {
+        finalArray2[indexF] = array1[index1];
+        index1++;
+        indexF++;
+    }
+    while(index2 < arraySize)
+    {
+        finalArray2[indexF] = array2[index2];
+        index2++;
+        indexF++;
+    }
+}
+
+
+//threading
+
+void* bubbleSort(void* threadid){
+    bubbleSort(array5, 250000);
+    pthread_exit(NULL);
+}
+void* insertionSort(void* threadid){
+    insertionSort(array3, 250000);
+    pthread_exit(NULL);
+}
+void* mergeSort(void *threadid){
+    mergeSort(array6, newArray, 0, 249999);
+    pthread_exit(NULL);
+}
+void* quickSort(void* threadid){
+    quickSort(array1, 0, 499999);
+    pthread_exit(NULL);
+}
+void* selectionSort(void *threadid){
+    selectionSort(array2, 500000);
+    pthread_exit(NULL);
+}
+void* shellSort(void *threadid){
+    shellSort(array4, 250000);
+    pthread_exit(NULL);
+}
+
+//sorting methods
+
+void bubbleSort(int myArray[],int size)
+{
+    int temp;
+    for(int num1 = 0; num1 <= size-1; num1++)
+    {
+        for(int num2 = 0; num2 < size-1; num2++)
+        {
+            if(myArray[num2] > myArray[num2+1])
+            {
+                temp = myArray[num2];
+                myArray[num2] = myArray[num2+1];
+                myArray[num2+1] = temp;
+            }
+        }
+    }
+}
+
+void insertionSort(int myArray[], int size)
+{
+    int num1, num2;
+    int temp;
+    
+    for(num1 = 1; num1 < size; num1++)
+    {
+        num2 = num1;
+        while(num2 > 0 && myArray[num2-1] > myArray[num2])
+        {
+            temp = myArray[num2];
+            myArray[num2] = myArray[num2-1];
+            myArray[num2-1] = temp;
+            num2--;
+        }
+    }
+}
+
+void mergeSort(int myArray[], int newArray[], int minCount, int maxCount)
+{
+    int midCount;
+    if (minCount < maxCount)
+    {
+        midCount=(minCount+maxCount)/2;
+        mergeSort(myArray,newArray, minCount,midCount);
+        mergeSort(myArray,newArray, midCount + 1,maxCount);
+        
+        mergeNumbers(myArray, newArray, minCount, maxCount, midCount);
+    }
+    return;
+}
+
+void mergeNumbers(int myArray[], int newArray[], int minCount, int maxCount, int midCount)
+{
+    int arrayNum = minCount;
+    int num1 = minCount;
+    int num2 = midCount + 1;
+    
+    while (num1 <= midCount && num2 <= maxCount)
+    {
+        if (myArray[num1] < myArray[num2])
+        {
+            newArray[arrayNum] = myArray[num1];
+            num1++;
+            arrayNum++;
+        }
+        else
+        {
+            newArray[arrayNum] = myArray[num2];
+            num2++;
+            arrayNum++;
+        }
+    }
+    
+    while (num1 <= midCount)
+    {
+        newArray[arrayNum] = myArray[num1];
+        num1++;
+        arrayNum++;
+    }
+    
+    while (num2 <= maxCount)
+    {
+        newArray[arrayNum] = myArray[num2];
+        num2++;
+        arrayNum++;
+    }
+    
+    for (num1 = minCount; num1 < arrayNum; num1++)
+    {
+        myArray[num1] = newArray[num1];
+    }
+}
+
+void quickSort(int array1[], int lowIndex, int highIndex)
+{
+    if(lowIndex < highIndex)
+    {
+        int pValue = quickSortPartition(array1, lowIndex, highIndex); //use to divide the array
+        quickSort(array1, lowIndex, (pValue-1));
+        quickSort(array1, (pValue+1), highIndex);
+    }
+}
+
+//sorts array from pivot and return value to divide the array
+int quickSortPartition(int array1[], int lowIndex, int highIndex)
+{
+    int pivot = array1[highIndex];
+    
+    while(lowIndex < highIndex)
+    {
+        while(array1[lowIndex] < pivot)
+        {
+            lowIndex++;
+        }
+        while(array1[highIndex] > pivot)
+        {
+            highIndex--;
+        }
+        
+        if(array1[lowIndex] == array1[highIndex])
+        {
+            lowIndex++;
+        }
+        else if (lowIndex < highIndex)
+        {
+            int temp = array1[lowIndex];
+            array1[lowIndex] = array1[highIndex];
+            array1[highIndex] = temp;
+        }
+    }
+    
+    return highIndex;
+}
+
+void selectionSort(int array2[], int size)
+{
+    int minIndex;
+    int temp;
+    
+    for(int arrayIndex = 0; arrayIndex < size-1; arrayIndex++)
+    {
+        minIndex = arrayIndex;
+        
+        for(int index = arrayIndex+1; index < size; index++)
+        {
+            if(array2[index] < array2[minIndex])
+            {
+                minIndex = index;
+            }
+        }
+        
+        if(minIndex != arrayIndex)  //this means new min value found
+        {
+            //swap
+            temp = array2[arrayIndex];
+            array2[arrayIndex] = array2[minIndex];
+            array2[minIndex] = temp;
+            
+        }
+    }
+}
+
+void shellSort(int myArray[], int size)
+{
+    int gap, num1, num2, temp;
+    
+    for (gap =  size/2; gap > 0; gap /= 2)
+    {
+        for (num1 = gap; num1 < size; num1++)
+        {
+            temp = myArray[num1];
+            
+            for (num2 = num1; num2 >= gap; num2 -= gap )
+            {
+                if(temp < myArray[num2 - gap])
+                {
+                    myArray[num2] = myArray[num2 - gap];
+                }
+                else
+                {
+                    break;
+                }
+            }
+            myArray[num2] = temp;
+        }
+    }
+}
+
+
+//writing to file
+
+void writeTrial1(int finalArray1[]){
+    
+    ofstream myFile;
+    myFile.open("sortedTrial1.txt");
+    
+    if(myFile.is_open())
+    {
+        for(int i = 0; i < 1000000; i++)
+        {
+            myFile << finalArray1[i] << endl;
+        }
+    }
+    else
+    {
+        cout << "Could not open file sortedTrial1.txt" << endl;
+    }
+    
+    myFile.close();
+}
+
+
+void writeTrial2(int finalArray2[]){
+    
+    ofstream myFile;
+    myFile.open("sortedTrial2.txt");
+    
+    if(myFile.is_open())
+    {
+        for(int i = 0; i < 1000000; i++)
+        {
+            myFile << finalArray2[i] << endl;
+        }
+        
+    }
+    else
+    {
+        cout << "Could not open file sortedTrial2.txt" << endl;
+    }
+    
+    myFile.close();
+    
+}
